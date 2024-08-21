@@ -32,3 +32,4 @@
 *.out
 *.app
 /imples/boiler.internals.ixx
+/.vs
