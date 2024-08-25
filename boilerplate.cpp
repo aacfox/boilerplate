@@ -42,35 +42,22 @@ export namespace boil {
 	inline namespace classes {
 		class Exception: public exception {
 		public:
-			Exception(string_view info = "Unknown exception.",
-						 source_location location = source_location::current(),
-						  stacktrace moment = stacktrace::current(1)):
-				_info{ move(info) }, _location{ move(location) }, _moment{ move(moment) } {
+			Exception(string_view what = "Unknown exception.",
+						 source_location where = source_location::current(),
+						  stacktrace when = stacktrace::current(1)):
+				_what{ move(what) }, _where{ move(where) }, _when{ move(when) } {
 			}
-			const char* what() const noexcept override { return _info.data(); }
-			virtual const source_location& where() const noexcept { return _location; }
-			virtual const stacktrace& when() const noexcept { return _moment; }
+			const char* what() const noexcept override { return _what.data(); }
+			virtual const source_location& where() const noexcept { return _where; }
+			virtual const stacktrace& when() const noexcept { return _when; }
 		private:
-			string _info;
-			source_location _location;
-			stacktrace _moment;
+			string _what;
+			source_location _where;
+			stacktrace _when;
 		};
 
-		class Combination {
-		public:
-			Combination(size_t, size_t);
-			template<ranges::sized_range R>
-			Combination(R range, size_t k): Combination(range.size(), k) {}
-			span<const size_t> operator*() { return _pointers; }
-			Combination& operator++();
-			bool ok();
-		private:
-			void restore();
-			const size_t _n;
-			const size_t _k;
-			vector<size_t> _pointers;
-			bool _ok{ true };
-		};
+		template<class... Functors>
+		struct Visitor: Functors...{ using Functors::operator()...; };
 	}
 
 	inline namespace functions {
@@ -100,39 +87,7 @@ export namespace boil {
 
 using namespace boil; //templates' implementations:
 
-
-
 module: private; //complete types' implementations:
-
-Combination::Combination(size_t n, size_t k): _n{ n }, _k{ k } {
-	if (_n < _k)
-		throw invalid_argument("N should be greater or equal to K.");
-	_pointers.resize(_k);
-	if (_k == 0) _ok = false;
-	ranges::iota(_pointers, 0);
-}
-Combination& Combination::operator++() {
-	for (size_t forwarded{}; auto & i : _pointers | views::reverse) {
-		if (i + 1 != _n - forwarded) break;
-		else {
-			i = 0;
-			++forwarded;
-		}
-	}
-	restore();
-	return *this;
-}
-void Combination::restore() {
-	for (auto [i, j] : _pointers | views::adjacent<2>)
-		if (i >= j) j = i + 1;
-}
-bool Combination::ok() {
-	cauto old{ _ok };
-	if (_pointers[0] == _n - _k)
-		_ok = false;
-	return old;
-
-}
 
 //Don't ask anything about the following... Just ignore it.
 //using gsl::narrow, gsl::narrow_cast,
