@@ -5,8 +5,8 @@ project(boilerplate VERSION 1)
 set(CMAKE_CXX_MODULE_STD 1)
 
 add_library(boilerplate STATIC)
-target_sources(boilerplate PUBLIC FILE_SET CXX_MODULES FILES "boilerplate.cxx"
-                                  "etc/boil.cxx" "etc/radix_sort.cxx")
+target_sources(boilerplate PUBLIC FILE_SET CXX_MODULES FILES "boilerplate.ixx"
+                                  "etc/boilerplate.cxx" "etc/radix_sort.cxx")
 target_compile_features(boilerplate PUBLIC cxx_std_26)
 
 include(FetchContent)

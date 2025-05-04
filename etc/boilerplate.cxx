@@ -1,14 +1,10 @@
 module;
 #define cauto const auto
+#include <execution>
 #include <gsl/gsl>
 export module boilerplate:boil;
 export import std;
 export {
-  namespace std {
-  namespace chrono {}
-  namespace execution {}
-  namespace filesystem {}
-  } // namespace std
   using namespace std;
   using namespace chrono;
   using namespace filesystem;
@@ -38,20 +34,22 @@ export {
     unordered = -128,
   };
   constexpr auto now = &high_resolution_clock::now;
-  auto today() noexcept {
+  constexpr auto today() noexcept {
     return year_month_day{floor<days>(system_clock::now())};
   }
-  auto o_clock() noexcept {
+  constexpr auto o_clock() noexcept {
     return hh_mm_ss{floor<seconds>(system_clock::now()) -
                     floor<days>(system_clock::now())};
   }
-  auto subrange(pair_like auto pair) {
+  constexpr auto subrange(pair_like auto pair) noexcept {
     static_assert(sentinel_for<std::tuple_element_t<1, decltype(pair)>,
                                std::tuple_element_t<0, decltype(pair)>>,
                   "Denotes invalid subrange!");
     return r::subrange{get<0>(pair), get<1>(pair)};
   }
-  void create_file(convertible_to<path> auto &&filename) { ofstream{filename}; }
+  constexpr void create_file(convertible_to<path> auto &&filename) noexcept {
+    ofstream{filename};
+  }
   } // namespace utilities
 
   inline namespace classes {
@@ -68,14 +66,14 @@ export {
                 ,_when{std::move(when)}
               #endif
     {}
-    const char *what() const noexcept override { return _what.data(); }
+    virtual const char *what() const noexcept { return _what.data(); }
     virtual const source_location &where() const noexcept { return _where; }
     #ifdef __cpp_lib_stacktrace
     virtual const stacktrace &when() const noexcept { return _when; }
     #endif
 
   private:
-    string _what;
+    string_view _what;
     source_location _where;
     #ifdef __cpp_lib_stacktrace
     stacktrace _when;
