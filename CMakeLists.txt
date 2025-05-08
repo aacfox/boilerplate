@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 4.0.1)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
 
-project(boilerplate VERSION 1)
+project(boilerplate VERSION 1.2)
 set(CMAKE_CXX_MODULE_STD 1)
 
 add_library(boilerplate STATIC)
-target_sources(boilerplate PUBLIC FILE_SET CXX_MODULES FILES "boilerplate.ixx"
-                                  "etc/boilerplate.cxx" "etc/radix_sort.cxx")
+target_sources(
+  boilerplate PUBLIC FILE_SET CXX_MODULES FILES boilerplate.cxx)
 target_compile_features(boilerplate PUBLIC cxx_std_26)
 
 include(FetchContent)
