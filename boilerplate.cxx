@@ -143,7 +143,7 @@ export {
     }
   }
 
-  template <class... Args, invocable<Args...> Fx, size_t n = 1024>
+  template <size_t n = 1024, class... Args, invocable<Args...> Fx>
   [[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
     const auto epoch = boil::now();
     for (size_t i{}; i != n; ++i) {
