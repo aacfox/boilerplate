@@ -147,7 +147,7 @@ export {
   [[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
     const auto epoch = boil::now();
     for (size_t i{}; i != n; ++i) {
-      invoke(std::forward<Fx>(fx), (std::forward<Args>(args), ...));
+      invoke(std::forward<Fx>(fx), std::forward<Args>(args)...);
     }
     return (boil::now() - epoch) / n;
   }
