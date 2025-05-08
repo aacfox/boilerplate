@@ -12,10 +12,10 @@ export {
   using namespace execution;
   namespace r = ranges;
   namespace v = views;
-  using gsl::narrow, gsl::narrow_cast, gsl::at, ranges::forward_range,
-      ranges::range, ranges::borrowed_range, ranges::random_access_range,
-      ranges::sized_range, ranges::common_range, ranges::sized_range,
-      ranges::view;
+  using gsl::at, gsl::final_action, gsl::finally, gsl::index, gsl::narrow, gsl::narrow_cast,
+       ranges::forward_range, ranges::range, ranges::borrowed_range,
+      ranges::random_access_range, ranges::sized_range, ranges::common_range,
+      ranges::sized_range, ranges::view;
 
   namespace boil {
   inline namespace utilities {
@@ -91,118 +91,121 @@ export {
     // clang-format on
   };
   } // namespace utilities
-  
+
   inline namespace classes {
   class bitvector : public vector<bool> {
-    public:
+  public:
     using vector<bool>::vector;
     template <size_t N = 0> constexpr explicit bitvector(bitset<N> &rhs);
     template <size_t N = 0>
-    constexpr operator bitset<N>(this const bitvector &);
-    constexpr bool operator[](this const bitvector &, size_t position);
-    reference operator[](this bitvector &, size_t position);
-    constexpr bool test(this const bitvector &, size_t position);
-    constexpr bool operator==(this const bitvector &, const bitvector &rhs);
-    constexpr bool all(this const bitvector &);
-    constexpr bool any(this const bitvector &);
-    constexpr bool none(this const bitvector &);
-    constexpr size_t count(this const bitvector &);
+    [[nodiscard]] constexpr operator bitset<N>(this const bitvector &);
+    [[nodiscard]] constexpr bool operator[](this const bitvector &, index bit);
+    [[nodiscard]] reference operator[](this bitvector &, index bit);
+    [[nodiscard]] constexpr bool test(this const bitvector &, index bit);
+    [[nodiscard]] constexpr bool operator==(this const bitvector &,
+                                            const bitvector &rhs);
+    [[nodiscard]] constexpr bool all(this const bitvector &);
+    [[nodiscard]] constexpr bool any(this const bitvector &);
+    [[nodiscard]] constexpr bool none(this const bitvector &);
+    [[nodiscard]] constexpr size_t count(this const bitvector &);
     bitvector &operator&=(this bitvector &, const bitvector &other);
     bitvector &operator|=(this bitvector &, const bitvector &other);
     bitvector &operator^=(this bitvector &, const bitvector &other);
-    constexpr bitvector operator~(this const bitvector);
-    bitvector &operator<<=(this bitvector &, size_t position);
-    constexpr bitvector operator<<(this const bitvector, size_t position);
-    bitvector &operator>>=(this bitvector &, size_t position);
-    constexpr bitvector operator>>(this const bitvector &, size_t position);
+    [[nodiscard]] constexpr bitvector operator~(this const bitvector);
+    bitvector &operator<<=(this bitvector &, size_t shift);
+    [[nodiscard]] constexpr bitvector operator<<(this const bitvector,
+                                                 size_t shift);
+    bitvector &operator>>=(this bitvector &, size_t shift);
+    [[nodiscard]] constexpr bitvector operator>>(this const bitvector &,
+                                                 size_t shift);
     bitvector &set(this bitvector &);
-    bitvector &set(this bitvector &, size_t position, bool value = true);
+    bitvector &set(this bitvector &, index bit, bool value = true);
     bitvector &reset(this bitvector &);
-    bitvector &reset(this bitvector &, size_t position);
+    bitvector &reset(this bitvector &, index bit);
     bitvector &flip(this bitvector &);
-    bitvector &flip(this bitvector &, size_t position);
-    
-    private:
+    bitvector &flip(this bitvector &, index bit);
+
+  private:
   };
   using dynamic_bitset = bitvector;
-} // namespace classes
+  } // namespace classes
 
-inline namespace functions {
-template <arithmetic T = size_t>
-[[nodiscard]] auto randomizer(T min = min_v<T>, T max = max_v<T>) {
-  random_device seeder;
-  default_random_engine generator{seeder()};
-  if constexpr (is_floating_point_v<T>) {
-    return bind(uniform_real_distribution{min, max}, std::move(generator));
+  inline namespace functions {
+  template <arithmetic T = size_t>
+  [[nodiscard]] auto randomizer(T min = min_v<T>, T max = max_v<T>) {
+    random_device seeder;
+    default_random_engine generator{seeder()};
+    if constexpr (is_floating_point_v<T>) {
+      return bind(uniform_real_distribution{min, max}, std::move(generator));
+    }
+    if constexpr (is_integral_v<T>) {
+      return bind(uniform_int_distribution{min, max}, std::move(generator));
+    }
   }
-  if constexpr (is_integral_v<T>) {
-    return bind(uniform_int_distribution{min, max}, std::move(generator));
+
+  template <class... Args, invocable<Args...> Fx, size_t n = 1024>
+  [[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
+    const auto epoch = boil::now();
+    for (size_t i{}; i != n; ++i) {
+      invoke(std::forward<Fx>(fx), (std::forward<Args>(args), ...));
+    }
+    return (boil::now() - epoch) / n;
   }
-}
 
-template <class... Args, invocable<Args...> Fx, size_t n = 1024>
-[[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
-  const auto epoch = boil::now();
-  for (size_t i{}; i != n; ++i) {
-    invoke(std::forward<Fx>(fx), (std::forward<Args>(args), ...));
+  template <class T, class Projection = std::identity>
+  void radix_sort(std::span<const T> span, Projection projection = {},
+                  bool LSD = true) {
+    //   const size_t size{span.size()};
+    //   constexpr size_t bits{sizeof(std::invoke(projection, span[0])) * 8};
+    //   using bitset = std::bitset<bits>;
+    //   constexpr unsigned char base{4};
+    //   constexpr unsigned char radix{1 << base}; // = 16, given base == 4
+    //   constexpr size_t length{bits / base};
+    //   std::vector<T> spanCopy;
+    //   spanCopy.reserve(size);
+    //   std::vector<bitset> sets;
+    //   sets.reserve(size);
+    //   for (auto i : span) {
+    //     spanCopy.push_back(i);
+    //     sets.push_back(std::bit_cast<bitset>(std::invoke(projection, i)));
+    //   }
+    //   auto change_radix{[&](bitset &set, std::vector<size_t> &digits) {
+    //     for (size_t digit{}; digit < length; ++digit) {
+    //       std::bitset<8> mask{};
+    //       set >>= base;
+    //       for (size_t i{}; i < base; ++i)
+    //         if (set.test(i))
+    //           mask.set(i);
+    //       digits.push_back(std::bit_cast<int>(mask));
+    //     }
+    //   }};
+    //   std::vector<std::tuple<size_t, std::vector<size_t>>> to_sort(size);
+    //   for (size_t i{}; auto &[index, digits] : to_sort) {
+    //     index = i++;
+    //     change_radix(sets.at(index), digits);
+    //   }
+    //   sets.clear();
+    //   std::array<size_t, radix> buckets{};
+    //   auto countingSort{[&](const size_t digit) mutable {
+    //     buckets.fill(0);
+    //     auto toSortCopy{to_sort};
+    //     for (const auto &[index, digits] : toSortCopy)
+    //       ++buckets.at(digits.at(digit));
+    //     std::inclusive_scan(std::begin(buckets), std::end(buckets),
+    //                         std::begin(buckets));
+    //     for (auto &i : toSortCopy | reverse) {
+    //       const size_t index = std::get<1>(i).at(digit);
+    //       to_sort.at(--buckets.at(index)) = std::move(i);
+    //     }
+    //   }};
+    //   for (size_t i{}; i != length; ++i) {
+
+    //     countingSort(i);
+    //   }
+    //   for (size_t i{}; auto &[index, garbage] : to_sort)
+    //     span[i++] = std::move(spanCopy.at(index));
   }
-  return (boil::now() - epoch) / n;
-}
-
-template <class T, class Projection = std::identity>
-void radix_sort(std::span<const T> span, Projection projection = {},
-                bool LSD = true) {
-  //   const size_t size{span.size()};
-  //   constexpr size_t bits{sizeof(std::invoke(projection, span[0])) * 8};
-  //   using bitset = std::bitset<bits>;
-  //   constexpr unsigned char base{4};
-  //   constexpr unsigned char radix{1 << base}; // = 16, given base == 4
-  //   constexpr size_t length{bits / base};
-  //   std::vector<T> spanCopy;
-  //   spanCopy.reserve(size);
-  //   std::vector<bitset> sets;
-  //   sets.reserve(size);
-  //   for (auto i : span) {
-  //     spanCopy.push_back(i);
-  //     sets.push_back(std::bit_cast<bitset>(std::invoke(projection, i)));
-  //   }
-  //   auto change_radix{[&](bitset &set, std::vector<size_t> &digits) {
-  //     for (size_t digit{}; digit < length; ++digit) {
-  //       std::bitset<8> mask{};
-  //       set >>= base;
-  //       for (size_t i{}; i < base; ++i)
-  //         if (set.test(i))
-  //           mask.set(i);
-  //       digits.push_back(std::bit_cast<int>(mask));
-  //     }
-  //   }};
-  //   std::vector<std::tuple<size_t, std::vector<size_t>>> to_sort(size);
-  //   for (size_t i{}; auto &[index, digits] : to_sort) {
-  //     index = i++;
-  //     change_radix(sets.at(index), digits);
-  //   }
-  //   sets.clear();
-  //   std::array<size_t, radix> buckets{};
-  //   auto countingSort{[&](const size_t digit) mutable {
-  //     buckets.fill(0);
-  //     auto toSortCopy{to_sort};
-  //     for (const auto &[index, digits] : toSortCopy)
-  //       ++buckets.at(digits.at(digit));
-  //     std::inclusive_scan(std::begin(buckets), std::end(buckets),
-  //                         std::begin(buckets));
-  //     for (auto &i : toSortCopy | reverse) {
-  //       const size_t index = std::get<1>(i).at(digit);
-  //       to_sort.at(--buckets.at(index)) = std::move(i);
-  //     }
-  //   }};
-  //   for (size_t i{}; i != length; ++i) {
-
-  //     countingSort(i);
-  //   }
-  //   for (size_t i{}; auto &[index, garbage] : to_sort)
-  //     span[i++] = std::move(spanCopy.at(index));
-}
-} // namespace functions
+  } // namespace functions
   } // namespace boil
 }
 
@@ -217,29 +220,25 @@ template <size_t N = 0> constexpr bitvector::bitvector(bitset<N> &rhs) {
 
 template <size_t N = 0>
 constexpr bitvector::operator bitset<N>(this const bitvector &self) {
-  if (N < self.size()) {
-    throw(Exception{"Doesn't fit"});
-  }
+  Expects(N >= self.size());
   return bitset<N>{self | v::transform([](auto _) { return '0' + _; }) |
                    v::reverse | r::to<string>()};
 }
 
 constexpr bool bitvector::operator[](this const bitvector &self,
-                                     const size_t position) {
-  return self[position];
+                                     const index bit) {
+  return self[bit];
 }
 
 bitvector::reference bitvector::operator[](this bitvector &self,
-                                           const size_t position) {
-  return self[position];
+                                           const index bit) {
+  return self[bit];
 }
 
 constexpr bool bitvector::test(this const bitvector &self,
-                               const size_t position) {
-  if (position < self.size()) {
-    return self[position];
-  }
-  throw(Exception{"Out of range"});
+                               const index bit) {
+  Expects(bit < self.size());
+  return self[bit];
 }
 
 constexpr bool bitvector::operator==(this const bitvector &self,
@@ -305,9 +304,9 @@ bitvector &bitvector::set(this bitvector &self) {
   return self;
 }
 
-bitvector &bitvector::set(this bitvector &self, const size_t position,
+bitvector &bitvector::set(this bitvector &self, const index bit,
                           bool value) {
-  self[position] = value;
+  self[bit] = value;
   return self;
 }
 
@@ -316,20 +315,20 @@ bitvector &bitvector::reset(this bitvector &self) {
   return self;
 }
 
-bitvector &bitvector::reset(this bitvector &self, const size_t position) {
-  self[position] = false;
+bitvector &bitvector::reset(this bitvector &self, const index bit) {
+  self[bit] = false;
   return self;
 }
 
 bitvector &bitvector::flip(this bitvector &self) {
-  for (size_t _{}; _ != self.size(); ++_) {
+  for (index _{}; _ != self.size(); ++_) {
     self[_].flip();
   }
   return self;
 }
 
-bitvector &bitvector::flip(this bitvector &self, const size_t position) {
-  self[position].flip();
+bitvector &bitvector::flip(this bitvector &self, const index bit) {
+  self[bit].flip();
   return self;
 }
 
