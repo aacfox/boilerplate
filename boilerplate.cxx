@@ -7,6 +7,8 @@ export import std;
 
 // TODO(aacfox): read_(whole??)_file, CharT concept, 
 
+// DONE(aacfox):  
+
 export {
   using namespace std;
   using namespace chrono;
@@ -25,7 +27,7 @@ export {
       ranges::common_range, ranges::sized_range, ranges::view;
 
   namespace boil {
-  inline namespace utilities {
+  inline namespace utilities { // includes tiny classes and fxs
   template <class N>
   concept arithmetic = floating_point<N> or integral<N>;
   template <class Tuple, size_t size = 0>
@@ -68,6 +70,11 @@ export {
   } catch (...) {
     error = make_error_code(io_errc::stream);
     return false;
+  }
+
+  string all_contents(ifstream& in){
+    //TODO(aacfox): when character concept is ready
+    return {istreambuf_iterator<char>{in}, istreambuf_iterator<char>{}};
   }
 
   class Exception : public exception {
