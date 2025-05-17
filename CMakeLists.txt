@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 4.0.1)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
 
-project(boilerplate VERSION 1.2.3.1)
+project(boilerplate VERSION 2.2.3.1) #These numbers should change completely
+#                           | | | |   independently from each other
+#                           | | |  `cosmetic changes (affects neither performance nor functionality)
+#                           | |  `implementation changes (affects performance)
+#                           |  `functionality changes (adding/removing utils)
+#                            ` ABI breaks, other 'too big to fit in lesser radix' changes  
 set(CMAKE_CXX_MODULE_STD 1)
 
 add_library(boilerplate STATIC)
