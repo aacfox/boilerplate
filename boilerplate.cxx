@@ -7,9 +7,11 @@ export import std;
 
 export {
   using namespace std;
-  using namespace chrono;
-  using namespace filesystem;
-  using namespace execution;
+  namespace exe = execution;
+  namespace file = filesystem;
+  namespace c = chrono;
+  namespace e = execution;
+  namespace f = filesystem;
   namespace r = ranges;
   namespace v = views;
   using gsl::at, gsl::final_action, gsl::finally, gsl::index, gsl::narrow, gsl::narrow_cast,
