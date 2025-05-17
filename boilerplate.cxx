@@ -5,6 +5,8 @@ module;
 export module boilerplate;
 export import std;
 
+// TODO(aacfox): read_(whole??)_file, CharT concept, 
+
 export {
   using namespace std;
   using namespace chrono;
@@ -69,6 +71,7 @@ export {
   }
 
   class Exception : public exception {
+    // TODO(aacfox): nested exceptions
     // clang-format off
   public:
   explicit constexpr Exception(string_view what = "Unknown exception.",
@@ -81,10 +84,10 @@ export {
           ,_when{std::move(when)}
         #endif
   {}
-  [[nodiscard]] auto what() const noexcept -> const char * override { return _what.data(); }
-  [[nodiscard]] virtual auto where() const noexcept -> const source_location& { return _where; }
+  [[nodiscard]] constexpr auto what() const noexcept -> const char * override { return _what.data(); }
+  [[nodiscard]] virtual constexpr auto where() const noexcept -> const source_location& { return _where; }
   #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] virtual when() const noexcept -> const stacktrace& { return _when; }
+  [[nodiscard]] virtual constexpr when() const noexcept -> const stacktrace& { return _when; }
   #endif
 
   private:
@@ -95,6 +98,22 @@ export {
   #endif
     // clang-format on
   };
+
+  [[nodiscard]] constexpr string_view what(const exception_ptr &eptr = current_exception()) noexcept try {
+    if (eptr) {
+      rethrow_exception(eptr);
+    } else {
+      return "No exception.";
+    }
+  } catch (const exception &e) {
+    return e.what();
+  } catch (string_view e) {
+    return e;
+  } catch (...) {
+    return "No message.";
+  }
+
+  // TODO(aacfox): probably where() and when() counterparts?
   } // namespace utilities
 
   inline namespace classes {
