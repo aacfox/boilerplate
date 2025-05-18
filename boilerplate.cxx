@@ -29,7 +29,7 @@ export {
   namespace boil {
   inline namespace utilities { // includes tiny classes and fxs
   template <class T>
-  concept character = requires { class char_traits<T>; };
+  concept character = requires { typename char_traits<T>; };
   template <class N>
   concept arithmetic = is_arithmetic_v<N>;
   template <class Tuple, size_t size = 0>
