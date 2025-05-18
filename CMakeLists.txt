@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0.1)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
 
-project(boilerplate VERSION 2.4.4.1) #These numbers should change only
+project(boilerplate VERSION 2.5.5.2) #These numbers should change only
 #                           | | | |   completely independently from each other
 #                           | | |  `cosmetic changes (affects neither performance nor functionality)
 #                           | |  `implementation changes (affects performance)

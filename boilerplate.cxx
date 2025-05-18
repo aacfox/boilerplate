@@ -5,9 +5,9 @@ module;
 export module boilerplate;
 export import std;
 
-// TODO(aacfox): read_(whole??)_file, CharT concept, 
+// TODO(aacfox): 
 
-// DONE(aacfox):  
+// DONE(aacfox): 
 
 export {
   using namespace std;
@@ -28,15 +28,17 @@ export {
 
   namespace boil {
   inline namespace utilities { // includes tiny classes and fxs
+  template <class T>
+  concept character = requires { class char_traits<T>; };
   template <class N>
-  concept arithmetic = floating_point<N> or integral<N>;
+  concept arithmetic = is_arithmetic_v<N>;
   template <class Tuple, size_t size = 0>
   concept tuple_like = tuple_size_v<remove_cvref_t<Tuple>> >= size;
   template <class Pair>
   concept pair_like = tuple_size_v<remove_cvref_t<Pair>> == 2;
   template <arithmetic T> constexpr auto max_v = numeric_limits<T>::max();
   template <arithmetic T> constexpr auto min_v = numeric_limits<T>::min();
-  constexpr auto now = &c::high_resolution_clock::now;
+  constexpr auto now = &high_resolution_clock::now;
   using cache_line = bitset<hardware_constructive_interference_size>;
   enum class order : signed char {
     equal = 0,
@@ -72,8 +74,8 @@ export {
     return false;
   }
 
-  string all_contents(ifstream& in){
-    //TODO(aacfox): when character concept is ready
+  stringstream all_contents(ifstream &in) {
+    // TODO(aacfox): when character concept is ready
     return {istreambuf_iterator<char>{in}, istreambuf_iterator<char>{}};
   }
 
@@ -106,7 +108,8 @@ export {
     // clang-format on
   };
 
-  [[nodiscard]] constexpr string_view what(const exception_ptr &eptr = current_exception()) noexcept try {
+  [[nodiscard]] constexpr string_view
+  what(const exception_ptr &eptr = current_exception()) noexcept try {
     if (eptr) {
       rethrow_exception(eptr);
     } else {
@@ -125,6 +128,7 @@ export {
 
   inline namespace classes {
   class bitvector : public vector<bool> {
+    // TODO(aacfox): will need integer_sequence or iota? if already constexpr...
   public:
     using vector<bool>::vector;
     template <size_t N = 0> constexpr explicit bitvector(bitset<N> &rhs);
