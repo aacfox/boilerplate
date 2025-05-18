@@ -27,39 +27,51 @@ export {
       ranges::common_range, ranges::sized_range, ranges::view;
 
   namespace boil {
-  inline namespace utilities { // includes tiny classes and fxs
-  template <class T>
-  concept character = requires { typename char_traits<T>; };
-  template <class N>
-  concept arithmetic = is_arithmetic_v<N>;
-  template <class Tuple, size_t size = 0>
-  concept tuple_like = tuple_size_v<remove_cvref_t<Tuple>> >= size;
-  template <class Pair>
-  concept pair_like = tuple_size_v<remove_cvref_t<Pair>> == 2;
-  template <arithmetic T> constexpr auto max_v = numeric_limits<T>::max();
-  template <arithmetic T> constexpr auto min_v = numeric_limits<T>::min();
-  constexpr auto now = &high_resolution_clock::now;
-  using cache_line = bitset<hardware_constructive_interference_size>;
-  enum class order : signed char {
+  inline namespace sugars { // syntactic sugars
+    template <class T>
+    concept character = requires { typename char_traits<T>; };
+
+    template <class N>
+    concept arithmetic = is_arithmetic_v<N>;
+
+    template <class Tuple, size_t size = 0>
+    concept tuple_like = tuple_size_v<remove_cvref_t<Tuple>> >= size;
+
+    template <class Pair>
+    concept pair_like = tuple_size_v<remove_cvref_t<Pair>> == 2;
+
+    template <arithmetic T> constexpr auto max_v = numeric_limits<T>::max();
+    template <arithmetic T> constexpr auto min_v = numeric_limits<T>::min();
+
+    constexpr auto now = &high_resolution_clock::now;
+
+    using cache_line = bitset<hardware_constructive_interference_size>;
+  }
+  inline namespace utilities { // tiny classes and fxs
+  enum class Order : signed char {
     equal = 0,
     equivalent = equal,
     less = -1,
     greater = 1,
     unordered = -128,
   };
+  
   [[nodiscard]] constexpr auto today() noexcept {
     return year_month_day{floor<days>(system_clock::now())};
   }
+  
   [[nodiscard]] constexpr auto o_clock() noexcept {
     return hh_mm_ss{floor<seconds>(system_clock::now()) -
                     floor<days>(system_clock::now())};
   }
-  [[nodiscard]] constexpr auto subrange(pair_like auto pair) noexcept {
-    static_assert(sentinel_for<tuple_element_t<1, decltype(pair)>,
-                               tuple_element_t<0, decltype(pair)>>,
+  
+  [[nodiscard]] constexpr auto subrange(pair_like auto _) noexcept {
+    Expects(sentinel_for<tuple_element_t<1, decltype(_)>,
+                               tuple_element_t<0, decltype(_)>>,
                   "Denotes invalid subrange!");
-    return r::subrange{get<0>(pair), get<1>(pair)};
+    return r::subrange{get<0>(_), get<1>(_)};
   }
+  
   auto create_file(convertible_to<path> auto &&filename) {
     ofstream{filename};
     return true;
@@ -125,7 +137,6 @@ export {
 
   // TODO(aacfox): probably where() and when() counterparts?
   } // namespace utilities
-
   inline namespace classes {
   class bitvector : public vector<bool> {
     // TODO(aacfox): will need integer_sequence or iota? if already constexpr...
@@ -164,7 +175,6 @@ export {
   };
   using dynamic_bitset = bitvector;
   } // namespace classes
-
   inline namespace functions {
   template <arithmetic T = size_t>
   [[nodiscard]] auto randomizer(T min = min_v<T>, T max = max_v<T>) {
@@ -244,8 +254,7 @@ export {
   } // namespace boil
 }
 
-// bitvector imple
-namespace boil {
+namespace boil { // bitvector imple
 template <size_t N = 0> constexpr bitvector::bitvector(bitset<N> &rhs) {
   this->reserve(rhs.size());
   for (size_t _{}; _ != rhs.size(); ++_) {
