@@ -5,7 +5,7 @@ module;
 export module boilerplate;
 export import std;
 
-// TODO(aacfox): 
+// TODO(aacfox):
 
 // DONE(aacfox): 
 
@@ -74,9 +74,9 @@ export {
     return false;
   }
 
-  stringstream all_contents(ifstream &in) {
-    // TODO(aacfox): when character concept is ready
-    return {istreambuf_iterator<char>{in}, istreambuf_iterator<char>{}};
+  template<character CharT = char>
+  basic_stringstream<CharT> all_contents(ifstream &in) {
+    return {istreambuf_iterator<CharT>{in}, istreambuf_iterator<CharT>{}};
   }
 
   class Exception : public exception {
