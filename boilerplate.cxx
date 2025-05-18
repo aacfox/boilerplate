@@ -67,8 +67,7 @@ export {
   
   [[nodiscard]] constexpr auto subrange(pair_like auto _) noexcept {
     Expects((sentinel_for<tuple_element_t<1, decltype(_)>,
-                               tuple_element_t<0, decltype(_)>>,
-                  "Denotes invalid subrange!"));
+                               tuple_element_t<0, decltype(_)>>));
     return r::subrange{get<0>(_), get<1>(_)};
   }
   
