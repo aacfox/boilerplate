@@ -66,9 +66,9 @@ export {
   }
   
   [[nodiscard]] constexpr auto subrange(pair_like auto _) noexcept {
-    Expects(sentinel_for<tuple_element_t<1, decltype(_)>,
+    Expects((sentinel_for<tuple_element_t<1, decltype(_)>,
                                tuple_element_t<0, decltype(_)>>,
-                  "Denotes invalid subrange!");
+                  "Denotes invalid subrange!"));
     return r::subrange{get<0>(_), get<1>(_)};
   }
   
@@ -264,7 +264,7 @@ template <size_t N = 0> constexpr bitvector::bitvector(bitset<N> &rhs) {
 
 template <size_t N = 0>
 constexpr bitvector::operator bitset<N>(this const bitvector &self) {
-  Expects(N >= self.size());
+  Expects((N >= self.size()));
   return bitset<N>{self | v::transform([](auto _) { return '0' + _; }) |
                    v::reverse | r::to<string>()};
 }
@@ -280,7 +280,7 @@ bitvector::reference bitvector::operator[](this bitvector &self,
 }
 
 constexpr bool bitvector::test(this const bitvector &self, const index bit) {
-  Expects(bit < self.size());
+  Expects((bit < self.size()));
   return self[bit];
 }
 
