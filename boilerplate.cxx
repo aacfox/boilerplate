@@ -5,7 +5,7 @@ module;
 export module boilerplate;
 export import std;
 
-// DONE(aacfox): 
+// DONE(aacfox):
 
 export {
   using namespace std;
@@ -135,12 +135,27 @@ export {
     return e.what();
   } catch (string_view e) {
     return e;
+  } catch (const string &e) {
+    return e;
+  } catch (const char *e) {
+    return e;
   } catch (...) {
     return "Unknown/No message.";
   }
 
-  // TODO(aacfox): probably where() and when() counterparts?
+  // TODO(aacfox): when() counterparts
   [[nodiscard]] constexpr source_location
+  where(const exception_ptr &eptr = current_exception()) noexcept try {
+    if (eptr) {
+      rethrow_exception(eptr);
+    } else {
+      return "No exception.";
+    }
+  } catch (const exception &e) {
+    return e.where();
+  } catch (...) {
+    return "Unknown location.";
+  }
   } // namespace utilities
   inline namespace classes {
   class bitvector : public vector<bool> {
