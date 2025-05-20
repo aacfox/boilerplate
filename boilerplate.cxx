@@ -331,6 +331,10 @@ export {
   }
   } // namespace functions
   } // namespace boil
+  int main() {
+    println("BOILERPLATE");
+    using namespace boil;
+  }
 }
 
 namespace boil { // bitvector imple________________________________________
