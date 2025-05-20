@@ -109,10 +109,10 @@ export {
           ,_when{std::move(when)}
         #endif
   {}
-  [[nodiscard]] constexpr auto what() const noexcept -> const char * override { return _what.data(); }
-  [[nodiscard]] virtual constexpr auto where() const noexcept -> const source_location& { return _where; }
+  [[nodiscard]] constexpr const char* what() const noexcept override { return _what.data(); }
+  [[nodiscard]] virtual constexpr const source_location& where() const noexcept { return _where; }
   #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] virtual constexpr when() const noexcept -> const stacktrace& { return _when; }
+  [[nodiscard]] virtual auto when() const noexcept -> const stacktrace& { return _when; }
   #endif
 
   private:
@@ -143,19 +143,22 @@ export {
     return "Unknown/No message.";
   }
 
-  // TODO(aacfox): when() counterparts
   [[nodiscard]] constexpr source_location
   where(const exception_ptr &eptr = current_exception()) noexcept try {
     if (eptr) {
       rethrow_exception(eptr);
     } else {
-      return "No exception.";
+      return {};
     }
-  } catch (const exception &e) {
+  } catch (const Exception &e) {
     return e.where();
   } catch (...) {
-    return "Unknown location.";
+    return {};
   }
+  
+  #ifdef __cpp_lib_stacktrace
+  [[nodiscard]] stacktrace when(const exception_ptr &eptr = current_exception()) noexcept {}
+  #endif
   } // namespace utilities
   inline namespace classes {
   class bitvector : public vector<bool> {
