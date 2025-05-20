@@ -5,7 +5,7 @@ module;
 export module boilerplate;
 export import std;
 
-// DONE(aacfox):
+// DONE(aacfox): remove unnecessary const`s 
 
 export {
   using namespace std;
@@ -112,7 +112,7 @@ export {
   [[nodiscard]] constexpr const char* what() const noexcept override { return _what.data(); }
   [[nodiscard]] virtual constexpr const source_location& where() const noexcept { return _where; }
   #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] virtual auto when() const noexcept -> const stacktrace& { return _when; }
+  [[nodiscard]] virtual const stacktrace& when() const noexcept { return _when; }
   #endif
 
   private:
