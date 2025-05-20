@@ -136,10 +136,11 @@ export {
   } catch (string_view e) {
     return e;
   } catch (...) {
-    return "No message.";
+    return "Unknown/No message.";
   }
 
   // TODO(aacfox): probably where() and when() counterparts?
+  [[nodiscard]] constexpr source_location
   } // namespace utilities
   inline namespace classes {
   class bitvector : public vector<bool> {
