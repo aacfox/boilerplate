@@ -1,5 +1,4 @@
 module;
-#define cauto const auto
 #include <execution>
 #include <gsl/gsl>
 export module boilerplate;
@@ -20,9 +19,9 @@ export {
   namespace r = ranges;
   namespace v = views;
   using gsl::at, gsl::final_action, gsl::finally, gsl::index, gsl::narrow,
-      gsl::narrow_cast, ranges::forward_range, ranges::range,
-      ranges::borrowed_range, ranges::random_access_range, ranges::sized_range,
-      ranges::common_range, ranges::sized_range, ranges::view;
+      gsl::narrow_cast, gsl::not_null, ranges::forward_range, ranges::range, ranges::borrowed_range,
+      ranges::random_access_range, ranges::sized_range, ranges::common_range,
+      ranges::sized_range, ranges::view;
 
   namespace boil {
   inline namespace sugars { // syntactic ones
