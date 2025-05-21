@@ -5,7 +5,7 @@ module;
 export module boilerplate;
 export import std;
 
-// DONE(aacfox): remove unnecessary const`s 
+// DONE(aacfox): 
 
 export {
   using namespace std;
@@ -213,11 +213,11 @@ export {
 
   template <size_t n = 1024, class... Args, invocable<Args...> Fx>
   [[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
-    const auto epoch = boil::now();
+    const auto epoch = now();
     for (size_t i{}; i != n; ++i) {
       invoke(std::forward<Fx>(fx), std::forward<Args>(args)...);
     }
-    return (boil::now() - epoch) / n;
+    return (now() - epoch) / n;
   }
 
   template <class T, class Projection = identity>
