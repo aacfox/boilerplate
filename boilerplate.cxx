@@ -199,15 +199,27 @@ export {
   } // namespace classes
   inline namespace functions {
   template <arithmetic T = size_t>
-  [[nodiscard]] auto randomizer(T min = min_v<T>, T max = max_v<T>) {
+  [[nodiscard]] auto randomizer(const T lower_bound, const T upper_bound) {
     random_device seeder;
     default_random_engine generator{seeder()};
     if constexpr (is_floating_point_v<T>) {
-      return bind(uniform_real_distribution{min, max}, std::move(generator));
+      return bind(uniform_real_distribution{lower_bound, upper_bound}, std::move(generator));
     }
     if constexpr (is_integral_v<T>) {
-      return bind(uniform_int_distribution{min, max}, std::move(generator));
+      return bind(uniform_int_distribution{lower_bound, upper_bound}, std::move(generator));
     }
+  }
+  template <arithmetic T = size_t>
+  [[nodiscard]] auto randomizer(const T from_zero_to) {
+    return randomizer<T>(0, from_zero_to);
+  }
+  template <arithmetic T = size_t>
+  [[nodiscard]] auto randomizer() {
+    return randomizer<T>(min_v<T>, max_v<T>);
+  }
+  [[nodiscard]] bool flip_coin(){
+    thread_local auto coin{randomizer<size_t>(0, 1)};
+    return coin();
   }
 
   template <size_t n = 1024, class... Args, invocable<Args...> Fx>
@@ -218,6 +230,19 @@ export {
     }
     return (now() - epoch) / n;
   }
+  // auto superbench = [&](auto &&_) {
+  //   auto last_average{1ns}; // so that it doesn't stop on the first iteration
+  //   for (auto [total, times, buffer, same_in_row] = tuple{0ns, 0UZ, 0ns, 0UZ};
+  //        same_in_row != precision; last_average = buffer, total += benchmark(_),
+  //                                    times += precision, buffer = total / times,
+  //                                    print("{:012}\r", times))
+  //     if (last_average == buffer)
+  //       ++same_in_row;
+  //     else
+  //       same_in_row = 0;
+  //   println("");
+  //   return last_average;
+  // };
 
   template <class T, class Projection = identity>
   void radix_sort(span<const T> span, Projection projection = {},
