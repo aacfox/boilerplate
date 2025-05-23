@@ -94,9 +94,8 @@ export {
     return {istreambuf_iterator<CharT>{in}, istreambuf_iterator<CharT>{}};
   }
 
-  class Exception : public exception {
+  class Exception : public exception { // clang-format off
     // TODO(aacfox): nested exceptions
-    // clang-format off
   public:
   explicit constexpr Exception(string_view what = "Unknown exception.",
         source_location where = source_location::current()
@@ -119,8 +118,7 @@ export {
   const source_location _where;
   #ifdef __cpp_lib_stacktrace
   const stacktrace _when;
-  #endif
-    // clang-format on
+  #endif // clang-format on
   };
 
   [[nodiscard]] constexpr string_view
@@ -232,21 +230,20 @@ export {
     }
     return (now() - epoch) / n;
   }
-  // auto superbench = [&](auto &&_) {
-  //   auto last_average{1ns}; // so that it doesn't stop on the first iteration
-  //   for (auto [total, times, buffer, same_in_row] = tuple{0ns, 0UZ, 0ns,
-  //   0UZ};
-  //        same_in_row != precision; last_average = buffer, total +=
-  //        benchmark(_),
-  //                                    times += precision, buffer = total /
-  //                                    times, print("{:012}\r", times))
-  //     if (last_average == buffer)
-  //       ++same_in_row;
-  //     else
-  //       same_in_row = 0;
-  //   println("");
-  //   return last_average;
-  // };
+  template <size_t precision = 1024, class... Args, invocable<Args...> Fx>
+  [[nodiscard]] auto benchmark_to_death(Fx &&fx, Args &&...args) {
+    auto last_average{1ns}; // so that it doesn't stop on the first iteration
+    for (auto [total, times, buffer, same_in_row] = // clang-format off
+         tuple{  0ns,   0UZ,    0ns,         0UZ};
+         same_in_row != precision;
+         total += benchmark(std::forward<Fx>(fx), std::forward<Args>(args)...),
+         last_average = exchange(buffer, total / ++times)) // clang-format on
+      if (last_average == buffer)
+        ++same_in_row;
+      else
+        same_in_row = 0;
+    return last_average;
+  };
 
   template <class T, class Projection = identity>
   void radix_sort(span<const T> span, Projection projection = {},
