@@ -4,7 +4,7 @@ module;
 export module boilerplate;
 export import std;
 
-// DONE(aacfox): 
+// DONE(aacfox):
 
 export {
   using namespace std;
@@ -19,10 +19,10 @@ export {
   namespace r = ranges;
   namespace v = views;
   using gsl::at, gsl::final_action, gsl::finally, gsl::index, gsl::narrow,
-      gsl::narrow_cast, gsl::not_null, ranges::forward_range, ranges::range, ranges::borrowed_range,
-      ranges::random_access_range, ranges::sized_range, ranges::common_range,
-      ranges::sized_range, ranges::view;
-
+      gsl::narrow_cast, gsl::not_null, ranges::forward_range, ranges::range,
+      ranges::borrowed_range, ranges::random_access_range, ranges::sized_range,
+      ranges::common_range, ranges::sized_range, ranges::view;
+  // TODO(aacfox): how to export macro now?
   namespace boil {
   inline namespace sugars { // syntactic ones
   template <class T>
@@ -154,10 +154,11 @@ export {
   } catch (...) {
     return {};
   }
-  
-  #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] stacktrace when(const exception_ptr &eptr = current_exception()) noexcept {}
-  #endif
+
+#ifdef __cpp_lib_stacktrace
+  [[nodiscard]] stacktrace
+  when(const exception_ptr &eptr = current_exception()) noexcept {}
+#endif
   } // namespace utilities
   inline namespace classes {
   class bitvector : public vector<bool> {
@@ -203,21 +204,22 @@ export {
     random_device seeder;
     default_random_engine generator{seeder()};
     if constexpr (is_floating_point_v<T>) {
-      return bind(uniform_real_distribution{lower_bound, upper_bound}, std::move(generator));
+      return bind(uniform_real_distribution{lower_bound, upper_bound},
+                  std::move(generator));
     }
     if constexpr (is_integral_v<T>) {
-      return bind(uniform_int_distribution{lower_bound, upper_bound}, std::move(generator));
+      return bind(uniform_int_distribution{lower_bound, upper_bound},
+                  std::move(generator));
     }
   }
   template <arithmetic T = size_t>
   [[nodiscard]] auto randomizer(const T from_zero_to) {
     return randomizer<T>(0, from_zero_to);
   }
-  template <arithmetic T = size_t>
-  [[nodiscard]] auto randomizer() {
+  template <arithmetic T = size_t> [[nodiscard]] auto randomizer() {
     return randomizer<T>(min_v<T>, max_v<T>);
   }
-  [[nodiscard]] bool flip_coin(){
+  [[nodiscard]] bool flip_coin() {
     thread_local auto coin{randomizer<size_t>(0, 1)};
     return coin();
   }
@@ -232,10 +234,12 @@ export {
   }
   // auto superbench = [&](auto &&_) {
   //   auto last_average{1ns}; // so that it doesn't stop on the first iteration
-  //   for (auto [total, times, buffer, same_in_row] = tuple{0ns, 0UZ, 0ns, 0UZ};
-  //        same_in_row != precision; last_average = buffer, total += benchmark(_),
-  //                                    times += precision, buffer = total / times,
-  //                                    print("{:012}\r", times))
+  //   for (auto [total, times, buffer, same_in_row] = tuple{0ns, 0UZ, 0ns,
+  //   0UZ};
+  //        same_in_row != precision; last_average = buffer, total +=
+  //        benchmark(_),
+  //                                    times += precision, buffer = total /
+  //                                    times, print("{:012}\r", times))
   //     if (last_average == buffer)
   //       ++same_in_row;
   //     else
