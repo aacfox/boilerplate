@@ -13,7 +13,7 @@ export {
   // namespace exe = execution;
   namespace file = filesystem;
   namespace c = chrono;
-  // namespace e = execution; 
+  // namespace e = execution;
   namespace f = filesystem;
   namespace r = ranges;
   namespace v = views;
@@ -70,29 +70,34 @@ export {
     return r::subrange{get<0>(iter_pair), get<1>(iter_pair)};
   }
 
-  void print_type(auto var) { // removes cv-qualifiers!
+  auto print_type(auto var) try { // removes cv-qualifiers!
     // TODO(aacfox): maybe return somehow internally?..
     system(("c++filt -t "s + typeid(std::forward<decltype(var)>(var)).name())
                .data());
     print("\r");
-  }
-
-  auto create_file(convertible_to<path> auto &&filename) {
-    ofstream{filename};
-    return true;
-  }
-  auto create_file(convertible_to<path> auto &&filename,
-                   error_code &error) noexcept try {
-    create_file(std::forward<decltype(filename)>(filename));
-    error.clear();
     return true;
   } catch (...) {
-    error = make_error_code(io_errc::stream);
     return false;
   }
 
-  template <character CharT = char>
-  auto all_contents(ifstream &input) -> basic_stringstream<CharT> {
+  auto //
+  create_file(convertible_to<path> auto &&filename) -> directory_entry {
+    ofstream{filename};
+    return {filename};
+  }
+  auto                                                                 //
+  create_file(convertible_to<path> auto &&filename, error_code &error) //
+      noexcept -> directory_entry try {
+    create_file(std::forward<decltype(filename)>(filename));
+    error.clear();
+    return {filename};
+  } catch (...) {
+    error = make_error_code(io_errc::stream);
+    return {filename};
+  }
+
+  template <character CharT = char> auto //
+  all_contents(ifstream &input) -> basic_stringstream<CharT> {
     return {istreambuf_iterator<CharT>{input}, istreambuf_iterator<CharT>{}};
   }
 
@@ -126,9 +131,9 @@ export {
     source_location _where;
   }; // clang-format on
 
-  [[nodiscard]] constexpr // clang-format off
-  auto what(const exception_ptr &eptr = current_exception()) 
-    noexcept -> string_view try { // clang-format on
+  [[nodiscard]] constexpr auto                          //
+  what(const exception_ptr &eptr = current_exception()) //
+      noexcept -> string_view try {
     if (eptr) {
       rethrow_exception(eptr);
     } else {
@@ -146,9 +151,9 @@ export {
     return "Unknown/No message.";
   }
 
-  [[nodiscard]] constexpr // clang-format off
-  auto where(const exception_ptr &eptr = current_exception()) 
-    noexcept -> source_location try { // clang-format on
+  [[nodiscard]] constexpr auto                           //
+  where(const exception_ptr &eptr = current_exception()) //
+      noexcept -> source_location try {
     if (eptr) {
       rethrow_exception(eptr);
     } else {
@@ -161,8 +166,8 @@ export {
   }
 
 #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] stacktrace
-  when(const exception_ptr &eptr = current_exception()) noexcept {}
+  [[nodiscard]] auto when(const exception_ptr &eptr = current_exception()) //
+      noexcept -> stacktrace {}
 #endif
   } // namespace utilities
   inline namespace classes {
@@ -173,8 +178,6 @@ export {
     template <size_t N = 0> constexpr explicit bitvector(const bitset<N> &rhs);
     template <size_t N = 0>
     [[nodiscard]] constexpr operator bitset<N>(this const bitvector &);
-    [[nodiscard]] constexpr bool operator[](this const bitvector &, index bit);
-    [[nodiscard]] reference operator[](this bitvector &, index bit);
     [[nodiscard]] constexpr bool test(this const bitvector &, index bit);
     [[nodiscard]] constexpr bool operator==(this const bitvector &,
                                             const bitvector &rhs);
@@ -325,16 +328,6 @@ operator bitset<N>(this const bitvector &self) {
                    v::reverse | r::to<string>()};
 }
 
-constexpr bool bitvector:: //
-operator[](this const bitvector &self, const index bit) {
-  return self[bit];
-}
-
-bitvector::reference bitvector::operator[](this bitvector &self,
-                                           const index bit) {
-  return self[bit];
-}
-
 constexpr bool bitvector::test(this const bitvector &self, const index bit) {
   Expects((bit < self.size()));
   return self[bit];
@@ -384,9 +377,9 @@ bitvector &bitvector::operator<<=(this bitvector &self, const size_t shift) {
   return self;
 }
 
-constexpr bitvector bitvector::operator<<(this const bitvector self,
+constexpr bitvector bitvector::operator<<(this bitvector self,
                                           const size_t shift) {
-  return const_cast<bitvector &>(self) <<= shift;
+  return self <<= shift;
 }
 bitvector &bitvector::operator>>=(this bitvector &self, const size_t shift) {
   shift_right(self.begin(), self.end(), shift);
