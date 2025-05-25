@@ -4,17 +4,17 @@ module;
 export module boilerplate;
 export import std;
 
-// DONE(aacfox):
+// DONE(aacfox): 
 
 export {
   using namespace std;
   using namespace chrono;
   using namespace execution;
   using namespace filesystem;
-  namespace exe = execution;
+  namespace exe = execution; // NOLINT: it's no concern of utility lib
   namespace file = filesystem;
   namespace c = chrono;
-  namespace e = execution;
+  namespace e = execution; // NOLINT: also that's only for the time being
   namespace f = filesystem;
   namespace r = ranges;
   namespace v = views;
@@ -22,7 +22,10 @@ export {
       gsl::narrow_cast, gsl::not_null, ranges::forward_range, ranges::range,
       ranges::borrowed_range, ranges::random_access_range, ranges::sized_range,
       ranges::common_range, ranges::sized_range, ranges::view;
-  // TODO(aacfox): how to export macro now?
+  /*
+  #define cauto const auto
+  #define self_forward(object) forward<decltype(object)>(object) 
+   */
   namespace boil {
   inline namespace sugars { // syntactic ones
   template <class T>
@@ -53,19 +56,22 @@ export {
     unordered = -128,
   };
 
-  [[nodiscard]] constexpr auto today() noexcept {
+  [[nodiscard]] constexpr auto //
+  today() noexcept {
     return year_month_day{floor<days>(system_clock::now())};
   }
 
-  [[nodiscard]] constexpr auto o_clock() noexcept {
+  [[nodiscard]] constexpr auto //
+  o_clock() noexcept {
     return hh_mm_ss{floor<seconds>(system_clock::now()) -
                     floor<days>(system_clock::now())};
   }
 
-  [[nodiscard]] constexpr auto subrange(pair_like auto _) noexcept {
-    Expects((sentinel_for<tuple_element_t<1, decltype(_)>,
-                          tuple_element_t<0, decltype(_)>>));
-    return r::subrange{get<0>(_), get<1>(_)};
+  [[nodiscard]] constexpr auto //
+  subrange(pair_like auto &&iter_pair) noexcept {
+    Expects((sentinel_for<tuple_element_t<1, decltype(iter_pair)>,
+                          tuple_element_t<0, decltype(iter_pair)>>));
+    return r::subrange{get<0>(iter_pair), get<1>(iter_pair)};
   }
 
   void print_type(auto var) { // removes cv-qualifiers!
@@ -90,39 +96,43 @@ export {
   }
 
   template <character CharT = char>
-  basic_stringstream<CharT> all_contents(ifstream &in) {
-    return {istreambuf_iterator<CharT>{in}, istreambuf_iterator<CharT>{}};
+  auto all_contents(ifstream &input) -> basic_stringstream<CharT> {
+    return {istreambuf_iterator<CharT>{input}, istreambuf_iterator<CharT>{}};
   }
 
   class Exception : public exception { // clang-format off
     // TODO(aacfox): nested exceptions
   public:
-  explicit constexpr Exception(string_view what = "Unknown exception.",
-        source_location where = source_location::current()
-        #ifdef __cpp_lib_stacktrace
-        , stacktrace when = stacktrace::current(1)
-        #endif
-        ): _what{std::move(what)}, _where{std::move(where)}
-        #ifdef __cpp_lib_stacktrace
-          ,_when{std::move(when)}
-        #endif
-  {}
-  [[nodiscard]] constexpr const char* what() const noexcept override { return _what.data(); }
-  [[nodiscard]] virtual constexpr const source_location& where() const noexcept { return _where; }
-  #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] virtual const stacktrace& when() const noexcept { return _when; }
-  #endif
-
+    explicit Exception( // NOLINT: false positive
+        string_view what = "Unknown exception.", // NOLINT: it won't be, when stacktrace is adopted
+#ifdef __cpp_lib_stacktrace
+        stacktrace when = stacktrace::current(1),
+#endif
+        source_location where = source_location::current())
+        : _what{std::move(what)},
+#ifdef __cpp_lib_stacktrace
+          _when{std::move(when)},
+#endif
+          _where{std::move(where)} {}
+    [[nodiscard]] const char *
+    what() const noexcept override { return _what.data(); }
+#ifdef __cpp_lib_stacktrace
+    [[nodiscard]] virtual 
+    auto when() const noexcept -> const stacktrace & { return _when; }
+#endif
+    [[nodiscard]] virtual 
+    auto where() const noexcept -> const source_location & { return _where; }
   private:
-  string_view _what;
-  const source_location _where;
-  #ifdef __cpp_lib_stacktrace
-  const stacktrace _when;
-  #endif // clang-format on
-  };
+    string_view _what;
+#ifdef __cpp_lib_stacktrace
+    stacktrace _when;
+#endif
+    source_location _where;
+  }; // clang-format on
 
-  [[nodiscard]] constexpr string_view
-  what(const exception_ptr &eptr = current_exception()) noexcept try {
+  [[nodiscard]] constexpr // clang-format off
+  auto what(const exception_ptr &eptr = current_exception()) 
+    noexcept -> string_view try { // clang-format on
     if (eptr) {
       rethrow_exception(eptr);
     } else {
@@ -140,8 +150,9 @@ export {
     return "Unknown/No message.";
   }
 
-  [[nodiscard]] constexpr source_location
-  where(const exception_ptr &eptr = current_exception()) noexcept try {
+  [[nodiscard]] constexpr // clang-format off
+  auto where(const exception_ptr &eptr = current_exception()) 
+    noexcept -> source_location try { // clang-format on
     if (eptr) {
       rethrow_exception(eptr);
     } else {
@@ -178,13 +189,11 @@ export {
     bitvector &operator&=(this bitvector &, const bitvector &other);
     bitvector &operator|=(this bitvector &, const bitvector &other);
     bitvector &operator^=(this bitvector &, const bitvector &other);
-    [[nodiscard]] constexpr bitvector operator~(this const bitvector);
+    [[nodiscard]] constexpr bitvector operator~(this bitvector);
     bitvector &operator<<=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector operator<<(this const bitvector,
-                                                 size_t shift);
+    [[nodiscard]] constexpr bitvector operator<<(this bitvector, size_t shift);
     bitvector &operator>>=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector operator>>(this const bitvector &,
-                                                 size_t shift);
+    [[nodiscard]] constexpr bitvector operator>>(this bitvector, size_t shift);
     bitvector &set(this bitvector &);
     bitvector &set(this bitvector &, index bit, bool value = true);
     bitvector &reset(this bitvector &);
@@ -222,8 +231,9 @@ export {
     return coin();
   }
 
+  // NOLINTNEXTLINE: it's fucking template header
   template <size_t n = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] auto benchmark(Fx &&fx, Args &&...args) {
+  [[nodiscard]] nanoseconds benchmark(Fx &&fx, Args &&...args) {
     const auto epoch = now();
     for (size_t i{}; i != n; ++i) {
       invoke(std::forward<Fx>(fx), std::forward<Args>(args)...);
@@ -231,19 +241,21 @@ export {
     return (now() - epoch) / n;
   }
   template <size_t precision = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] auto benchmark_to_death(Fx &&fx, Args &&...args) {
-    auto last_average{1ns}; // so that it doesn't stop on the first iteration
-    for (auto [total, times, buffer, same_in_row] = // clang-format off
-         tuple{  0ns,   0UZ,    0ns,         0UZ};
+  [[nodiscard]] nanoseconds benchmark_to_death(Fx &&fx, Args &&...args) {
+    nanoseconds new_average{}; // clang-format off
+    for (auto [total, times, old_average, same_in_row] =
+         tuple{  0ns,   0uz,         0ns,         0uz}; 
          same_in_row != precision;
          total += benchmark(std::forward<Fx>(fx), std::forward<Args>(args)...),
-         last_average = exchange(buffer, total / ++times)) // clang-format on
-      if (last_average == buffer)
+         old_average = exchange(new_average, total / ++times)) { // clang-format on
+      if (old_average == new_average) {
         ++same_in_row;
-      else
+      } else {
         same_in_row = 0;
-    return last_average;
-  };
+      }
+    }
+    return new_average;
+  }
 
   template <class T, class Projection = identity>
   void radix_sort(span<const T> span, Projection projection = {},
