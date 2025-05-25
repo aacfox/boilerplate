@@ -1,20 +1,19 @@
-module;
-#include <execution>
-#include <gsl/gsl>
 export module boilerplate;
 export import std;
 
-// DONE(aacfox): 
+// DONE(aacfox):
 
 export {
   using namespace std;
   using namespace chrono;
-  using namespace execution;
+  // TODO(aacfox): experimental 'import std;'
+  // seems to be incompetible with ' "-fexperimental-library"
+  // using namespace execution;
   using namespace filesystem;
-  namespace exe = execution; // NOLINT: it's no concern of utility lib
+  // namespace exe = execution;
   namespace file = filesystem;
   namespace c = chrono;
-  namespace e = execution; // NOLINT: also that's only for the time being
+  // namespace e = execution; 
   namespace f = filesystem;
   namespace r = ranges;
   namespace v = views;
@@ -22,10 +21,7 @@ export {
       gsl::narrow_cast, gsl::not_null, ranges::forward_range, ranges::range,
       ranges::borrowed_range, ranges::random_access_range, ranges::sized_range,
       ranges::common_range, ranges::sized_range, ranges::view;
-  /*
-  #define cauto const auto
-  #define self_forward(object) forward<decltype(object)>(object) 
-   */
+
   namespace boil {
   inline namespace sugars { // syntactic ones
   template <class T>
@@ -174,7 +170,7 @@ export {
     // TODO(aacfox): will need integer_sequence or iota? if already constexpr...
   public:
     using vector<bool>::vector;
-    template <size_t N = 0> constexpr explicit bitvector(bitset<N> &rhs);
+    template <size_t N = 0> constexpr explicit bitvector(const bitset<N> &rhs);
     template <size_t N = 0>
     [[nodiscard]] constexpr operator bitset<N>(this const bitvector &);
     [[nodiscard]] constexpr bool operator[](this const bitvector &, index bit);
@@ -314,23 +310,23 @@ export {
   } // namespace boil
 }
 
-namespace boil { // bitvector imple
-template <size_t N = 0> constexpr bitvector::bitvector(bitset<N> &rhs) {
+namespace boil { // bitvector imple________________________________________
+template <size_t N = 0> constexpr bitvector:: //
+    bitvector(const bitset<N> &rhs) {
   this->reserve(rhs.size());
-  for (size_t _{}; _ != rhs.size(); ++_) {
-    this->push_back(rhs[_]);
-  }
+  generate_n(back_inserter(*this), rhs.size(),
+             [&rhs, i{-1z}] mutable { return rhs[++i]; });
 }
 
-template <size_t N = 0>
-constexpr bitvector::operator bitset<N>(this const bitvector &self) {
+template <size_t N = 0> constexpr bitvector:: //
+operator bitset<N>(this const bitvector &self) {
   Expects((N >= self.size()));
   return bitset<N>{self | v::transform([](auto _) { return '0' + _; }) |
                    v::reverse | r::to<string>()};
 }
 
-constexpr bool bitvector::operator[](this const bitvector &self,
-                                     const index bit) {
+constexpr bool bitvector:: //
+operator[](this const bitvector &self, const index bit) {
   return self[bit];
 }
 
@@ -398,9 +394,9 @@ bitvector &bitvector::operator>>=(this bitvector &self, const size_t shift) {
   return self;
 }
 
-constexpr bitvector bitvector::operator>>(this const bitvector &self,
+constexpr bitvector bitvector::operator>>(this bitvector self,
                                           const size_t shift) {
-  return const_cast<bitvector &>(self) >>= shift;
+  return self >>= shift;
 }
 bitvector &bitvector::set(this bitvector &self) {
   r::fill(self, true);
@@ -441,14 +437,3 @@ constexpr bitvector bitvector::operator~(this const bitvector self) {
 
 module :private;
 // please, don't ask anything about the following...
-// chrono::nanoseconds,
-// chrono::microseconds,
-// chrono::milliseconds,
-// chrono::seconds,
-// chrono::minutes,
-// chrono::hours,
-// chrono::days,
-// chrono::months,
-// chrono::years,
-// chrono::hh_mm_ss,
-// chrono::year_month_day,

@@ -1,0 +1,6 @@
+#include <cassert>
+// #include <execution>
+#include <gsl/gsl>
+
+#define cauto const auto
+#define self_forward(object) std::forward<decltype(object)>(object)
