@@ -217,6 +217,7 @@ export {
     reset(this bitvector &, index bit);
     bitvector & //
     flip(this bitvector &, index bit);
+    using vector<bool>::flip;
   private:
   };
   using dynamic_bitset = bitvector;
@@ -436,7 +437,7 @@ bitvector &bitvector:: //
 
 bitvector &bitvector:: //
     reset(this bitvector &self) {
-  r::fill(self, false);
+  self.clear();
   return self;
 }
 
@@ -454,7 +455,8 @@ bitvector &bitvector:: //
 
 constexpr bitvector bitvector:: //
 operator~(this bitvector self) {
-  return self.flip();
+  self.flip();
+  return self;
 }
 } // namespace boil
 
