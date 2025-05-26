@@ -26,20 +26,17 @@ export {
   inline namespace sugars { // syntactic ones
   template <class T>
   concept character = requires { typename char_traits<T>; };
-
   template <class N>
   concept arithmetic = is_arithmetic_v<N>;
-
   template <class Tuple, size_t size = 0>
   concept tuple_like = tuple_size_v<remove_cvref_t<Tuple>> >= size;
-
   template <class Pair>
   concept pair_like = tuple_size_v<remove_cvref_t<Pair>> == 2;
 
   template <arithmetic T> constexpr auto max_v = numeric_limits<T>::max();
   template <arithmetic T> constexpr auto min_v = numeric_limits<T>::min();
 
-  constexpr auto now = &high_resolution_clock::now;
+  cauto now = &high_resolution_clock::now;
 
   using cache_line = bitset<hardware_constructive_interference_size>;
   } // namespace sugars
@@ -67,12 +64,14 @@ export {
   subrange(pair_like auto &&iter_pair) noexcept {
     Expects((sentinel_for<tuple_element_t<1, decltype(iter_pair)>,
                           tuple_element_t<0, decltype(iter_pair)>>));
-    return r::subrange{get<0>(iter_pair), get<1>(iter_pair)};
+    return r::subrange{get<0>(self_forward(iter_pair)),
+                       get<1>(self_forward(iter_pair))};
   }
 
-  auto print_type(auto var) try { // removes cv-qualifiers!
+  auto //
+  print_type(auto &&var) try {
     // TODO(aacfox): maybe return somehow internally?..
-    system(("c++filt -t "s + typeid(std::forward<decltype(var)>(var)).name())
+    system(("c++filt -t "s + typeid(self_forward(var)).name())
                .data());
     print("\r");
     return true;
@@ -88,7 +87,7 @@ export {
   auto                                                                 //
   create_file(convertible_to<path> auto &&filename, error_code &error) //
       noexcept -> directory_entry try {
-    create_file(std::forward<decltype(filename)>(filename));
+    create_file(self_forward(filename));
     error.clear();
     return {filename};
   } catch (...) {
@@ -97,7 +96,8 @@ export {
   }
 
   template <character CharT = char> auto //
-  all_contents(ifstream &input) -> basic_stringstream<CharT> {
+  all_contents(ifstream &input)          //
+      -> basic_stringstream<CharT> {
     return {istreambuf_iterator<CharT>{input}, istreambuf_iterator<CharT>{}};
   }
 
@@ -115,14 +115,14 @@ export {
           _when{std::move(when)},
 #endif
           _where{std::move(where)} {}
-    [[nodiscard]] const char *
+    [[nodiscard]] const char * //
     what() const noexcept override { return _what.data(); }
 #ifdef __cpp_lib_stacktrace
     [[nodiscard]] virtual 
     auto when() const noexcept -> const stacktrace & { return _when; }
 #endif
-    [[nodiscard]] virtual 
-    auto where() const noexcept -> const source_location & { return _where; }
+    [[nodiscard]] virtual auto //
+    where() const noexcept -> const source_location & { return _where; }
   private:
     string_view _what;
 #ifdef __cpp_lib_stacktrace
@@ -175,38 +175,55 @@ export {
     // TODO(aacfox): will need integer_sequence or iota? if already constexpr...
   public:
     using vector<bool>::vector;
-    template <size_t N = 0> constexpr explicit bitvector(const bitset<N> &rhs);
-    template <size_t N = 0>
-    [[nodiscard]] constexpr operator bitset<N>(this const bitvector &);
-    [[nodiscard]] constexpr bool test(this const bitvector &, index bit);
-    [[nodiscard]] constexpr bool operator==(this const bitvector &,
-                                            const bitvector &rhs);
-    [[nodiscard]] constexpr bool all(this const bitvector &);
-    [[nodiscard]] constexpr bool any(this const bitvector &);
-    [[nodiscard]] constexpr bool none(this const bitvector &);
-    [[nodiscard]] constexpr size_t count(this const bitvector &);
-    bitvector &operator&=(this bitvector &, const bitvector &other);
-    bitvector &operator|=(this bitvector &, const bitvector &other);
-    bitvector &operator^=(this bitvector &, const bitvector &other);
-    [[nodiscard]] constexpr bitvector operator~(this bitvector);
-    bitvector &operator<<=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector operator<<(this bitvector, size_t shift);
-    bitvector &operator>>=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector operator>>(this bitvector, size_t shift);
-    bitvector &set(this bitvector &);
-    bitvector &set(this bitvector &, index bit, bool value = true);
-    bitvector &reset(this bitvector &);
-    bitvector &reset(this bitvector &, index bit);
-    bitvector &flip(this bitvector &);
-    bitvector &flip(this bitvector &, index bit);
-
+    template <size_t N = 0> constexpr explicit //
+    bitvector(const bitset<N> &rhs);
+    template <size_t N = 0> [[nodiscard]] constexpr  //
+    operator bitset<N>(this const bitvector &);
+    [[nodiscard]] constexpr bool //
+    test(this const bitvector &, index bit);
+    [[nodiscard]] constexpr bool  //
+    operator==(this const bitvector &, const bitvector &rhs);
+    [[nodiscard]] constexpr bool //
+    all(this const bitvector &);
+    [[nodiscard]] constexpr bool //
+    any(this const bitvector &);
+    [[nodiscard]] constexpr bool //
+    none(this const bitvector &);
+    [[nodiscard]] constexpr size_t //
+    count(this const bitvector &);
+    bitvector & //
+    operator&=(this bitvector &, const bitvector &other);
+    bitvector & //
+    operator|=(this bitvector &, const bitvector &other);
+    bitvector & //
+    operator^=(this bitvector &, const bitvector &other);
+    [[nodiscard]] constexpr bitvector  //
+    operator~(this bitvector);
+    bitvector & //
+    operator<<=(this bitvector &, size_t shift);
+    [[nodiscard]] constexpr bitvector  //
+    operator<<(this bitvector, size_t shift);
+    bitvector & //
+    operator>>=(this bitvector &, size_t shift);
+    [[nodiscard]] constexpr bitvector  //
+    operator>>(this bitvector, size_t shift);
+    bitvector & //
+    set(this bitvector &);
+    bitvector & //
+    set(this bitvector &, index bit, bool value = true);
+    bitvector & //
+    reset(this bitvector &);
+    bitvector & //
+    reset(this bitvector &, index bit);
+    bitvector & //
+    flip(this bitvector &, index bit);
   private:
   };
   using dynamic_bitset = bitvector;
   } // namespace classes
   inline namespace functions {
-  template <arithmetic T = size_t>
-  [[nodiscard]] auto randomizer(const T lower_bound, const T upper_bound) {
+  template <arithmetic T = size_t> [[nodiscard]] auto //
+  randomizer(const T lower_bound, const T upper_bound) {
     random_device seeder;
     default_random_engine generator{seeder()};
     if constexpr (is_floating_point_v<T>) {
@@ -218,34 +235,38 @@ export {
                   std::move(generator));
     }
   }
-  template <arithmetic T = size_t>
-  [[nodiscard]] auto randomizer(const T from_zero_to) {
+  template <arithmetic T = size_t> [[nodiscard]] auto //
+  randomizer(const T from_zero_to) {
     return randomizer<T>(0, from_zero_to);
   }
-  template <arithmetic T = size_t> [[nodiscard]] auto randomizer() {
+  template <arithmetic T = size_t> [[nodiscard]] auto //
+  randomizer() {
     return randomizer<T>(min_v<T>, max_v<T>);
   }
-  [[nodiscard]] bool flip_coin() {
+  [[nodiscard]] bool //
+  flip_coin() {
     thread_local auto coin{randomizer<size_t>(0, 1)};
     return coin();
   }
 
   // NOLINTNEXTLINE: it's fucking template header
   template <size_t n = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] nanoseconds benchmark(Fx &&fx, Args &&...args) {
+  [[nodiscard]] nanoseconds //
+  benchmark(Fx &&fx, Args &&...args) {
     const auto epoch = now();
     for (size_t i{}; i != n; ++i) {
-      invoke(std::forward<Fx>(fx), std::forward<Args>(args)...);
+      invoke(self_forward(fx), self_forward(args)...);
     }
     return (now() - epoch) / n;
   }
   template <size_t precision = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] nanoseconds benchmark_to_death(Fx &&fx, Args &&...args) {
+  [[nodiscard]] nanoseconds //
+  benchmark_to_death(Fx &&fx, Args &&...args) {
     nanoseconds new_average{}; // clang-format off
     for (auto [total, times, old_average, same_in_row] =
          tuple{  0ns,   0uz,         0ns,         0uz}; 
          same_in_row != precision;
-         total += benchmark(std::forward<Fx>(fx), std::forward<Args>(args)...),
+         total += benchmark(self_forward(fx), self_forward(args)...),
          old_average = exchange(new_average, total / ++times)) { // clang-format on
       if (old_average == new_average) {
         ++same_in_row;
@@ -328,103 +349,112 @@ operator bitset<N>(this const bitvector &self) {
                    v::reverse | r::to<string>()};
 }
 
-constexpr bool bitvector::test(this const bitvector &self, const index bit) {
+constexpr bool bitvector:: //
+    test(this const bitvector &self, const index bit) {
   Expects((bit < self.size()));
   return self[bit];
 }
 
-constexpr bool bitvector::operator==(this const bitvector &self,
-                                     const bitvector &rhs) {
+constexpr bool bitvector:: //
+operator==(this const bitvector &self, const bitvector &rhs) {
   return r::equal(self, rhs);
 }
 
-constexpr bool bitvector::all(this const bitvector &self) {
+constexpr bool bitvector:: //
+    all(this const bitvector &self) {
   return r::all_of(self, identity{});
 }
 
-constexpr bool bitvector::any(this const bitvector &self) {
+constexpr bool bitvector:: //
+    any(this const bitvector &self) {
   return r::any_of(self, identity{});
 }
 
-constexpr bool bitvector::none(this const bitvector &self) {
+constexpr bool bitvector:: //
+    none(this const bitvector &self) {
   return r::none_of(self, identity{});
 }
 
-constexpr size_t bitvector::count(this const bitvector &self) {
+constexpr size_t bitvector:: //
+    count(this const bitvector &self) {
   return r::count(self, true);
 }
 
-bitvector &bitvector::operator&=(this bitvector &self, const bitvector &other) {
+bitvector &bitvector:: //
+operator&=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs && rhs; });
   return self;
 }
 
-bitvector &bitvector::operator|=(this bitvector &self, const bitvector &other) {
+bitvector &bitvector:: //
+operator|=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs || rhs; });
   return self;
 }
 
-bitvector &bitvector::operator^=(this bitvector &self, const bitvector &other) {
+bitvector &bitvector:: //
+operator^=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs != rhs; });
   return self;
 }
-bitvector &bitvector::operator<<=(this bitvector &self, const size_t shift) {
+bitvector &bitvector:: //
+operator<<=(this bitvector &self, const size_t shift) {
   shift_left(self.begin(), self.end(), shift);
   r::fill_n(self.rbegin(), shift, false);
   return self;
 }
 
-constexpr bitvector bitvector::operator<<(this bitvector self,
-                                          const size_t shift) {
+constexpr bitvector bitvector:: //
+operator<<(this bitvector self, const size_t shift) {
   return self <<= shift;
 }
-bitvector &bitvector::operator>>=(this bitvector &self, const size_t shift) {
+bitvector &bitvector:: //
+operator>>=(this bitvector &self, const size_t shift) {
   shift_right(self.begin(), self.end(), shift);
   r::fill_n(self.begin(), shift, false);
   return self;
 }
 
-constexpr bitvector bitvector::operator>>(this bitvector self,
-                                          const size_t shift) {
+constexpr bitvector bitvector:: //
+operator>>(this bitvector self, const size_t shift) {
   return self >>= shift;
 }
-bitvector &bitvector::set(this bitvector &self) {
+bitvector &bitvector:: //
+    set(this bitvector &self) {
   r::fill(self, true);
   return self;
 }
 
-bitvector &bitvector::set(this bitvector &self, const index bit, bool value) {
+bitvector &bitvector:: //
+    set(this bitvector &self, const index bit, bool value) {
   self[bit] = value;
   return self;
 }
 
-bitvector &bitvector::reset(this bitvector &self) {
+bitvector &bitvector:: //
+    reset(this bitvector &self) {
   r::fill(self, false);
   return self;
 }
 
-bitvector &bitvector::reset(this bitvector &self, const index bit) {
+bitvector &bitvector:: //
+    reset(this bitvector &self, const index bit) {
   self[bit] = false;
   return self;
 }
 
-bitvector &bitvector::flip(this bitvector &self) {
-  for (index _{}; _ != self.size(); ++_) {
-    self[_].flip();
-  }
-  return self;
-}
-
-bitvector &bitvector::flip(this bitvector &self, const index bit) {
+bitvector &bitvector:: //
+    flip(this bitvector &self, const index bit) {
   self[bit].flip();
   return self;
 }
 
-constexpr bitvector bitvector::operator~(this const bitvector self) {
-  return const_cast<bitvector &>(self).flip();
+constexpr bitvector bitvector:: //
+operator~(this bitvector self) {
+  return self.flip();
 }
 } // namespace boil
 
