@@ -71,8 +71,7 @@ export {
   auto //
   print_type(auto &&var) try {
     // TODO(aacfox): maybe return somehow internally?..
-    system(("c++filt -t "s + typeid(self_forward(var)).name())
-               .data());
+    system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
     print("\r");
     return true;
   } catch (...) {
@@ -176,13 +175,11 @@ export {
   public:
     using vector<bool>::vector;
     template <size_t N = 0> constexpr explicit //
-    bitvector(const bitset<N> &rhs);
-    template <size_t N = 0> [[nodiscard]] constexpr  //
+        bitvector(const bitset<N> &rhs);
+    template <size_t N = 0> [[nodiscard]] constexpr //
     operator bitset<N>(this const bitvector &);
     [[nodiscard]] constexpr bool //
     test(this const bitvector &, index bit);
-    [[nodiscard]] constexpr bool  //
-    operator==(this const bitvector &, const bitvector &rhs);
     [[nodiscard]] constexpr bool //
     all(this const bitvector &);
     [[nodiscard]] constexpr bool //
@@ -191,22 +188,22 @@ export {
     none(this const bitvector &);
     [[nodiscard]] constexpr size_t //
     count(this const bitvector &);
+    [[nodiscard]] constexpr bitvector //
+    operator<<(this bitvector, size_t shift);
+    [[nodiscard]] constexpr bitvector //
+    operator>>(this bitvector, size_t shift);
+    [[nodiscard]] constexpr bitvector //
+    operator~(this bitvector);
     bitvector & //
     operator&=(this bitvector &, const bitvector &other);
     bitvector & //
     operator|=(this bitvector &, const bitvector &other);
     bitvector & //
     operator^=(this bitvector &, const bitvector &other);
-    [[nodiscard]] constexpr bitvector  //
-    operator~(this bitvector);
     bitvector & //
     operator<<=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector  //
-    operator<<(this bitvector, size_t shift);
     bitvector & //
     operator>>=(this bitvector &, size_t shift);
-    [[nodiscard]] constexpr bitvector  //
-    operator>>(this bitvector, size_t shift);
     bitvector & //
     set(this bitvector &);
     bitvector & //
@@ -218,6 +215,7 @@ export {
     bitvector & //
     flip(this bitvector &, index bit);
     using vector<bool>::flip;
+
   private:
   };
   using dynamic_bitset = bitvector;
@@ -357,11 +355,6 @@ constexpr bool bitvector:: //
 }
 
 constexpr bool bitvector:: //
-operator==(this const bitvector &self, const bitvector &rhs) {
-  return r::equal(self, rhs);
-}
-
-constexpr bool bitvector:: //
     all(this const bitvector &self) {
   return r::all_of(self, identity{});
 }
@@ -423,6 +416,13 @@ constexpr bitvector bitvector:: //
 operator>>(this bitvector self, const size_t shift) {
   return self >>= shift;
 }
+
+constexpr bitvector bitvector:: //
+operator~(this bitvector self) {
+  self.flip();
+  return self;
+}
+
 bitvector &bitvector:: //
     set(this bitvector &self) {
   r::fill(self, true);
@@ -450,12 +450,6 @@ bitvector &bitvector:: //
 bitvector &bitvector:: //
     flip(this bitvector &self, const index bit) {
   self[bit].flip();
-  return self;
-}
-
-constexpr bitvector bitvector:: //
-operator~(this bitvector self) {
-  self.flip();
   return self;
 }
 } // namespace boil
