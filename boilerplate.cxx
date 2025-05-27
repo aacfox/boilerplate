@@ -332,8 +332,9 @@ export {
   } // namespace functions
   } // namespace boil
   int main() {
-    println("BOILERPLATE");
+    println("OMISSIBLE");
     using namespace boil;
+    println("{}", o_clock());
   }
 }
 
