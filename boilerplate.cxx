@@ -331,11 +331,6 @@ export {
   }
   } // namespace functions
   } // namespace boil
-  int main() {
-    println("OMISSIBLE");
-    using namespace boil;
-    println("{}", o_clock());
-  }
 }
 
 namespace boil { // bitvector imple________________________________________
