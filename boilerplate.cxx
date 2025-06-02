@@ -68,14 +68,11 @@ export {
                        get<1>(self_forward(iter_pair))};
   }
 
-  auto //
-  print_type(auto &&var) try {
+  void //
+  print_type(auto &&var) {
     // TODO(aacfox): maybe return somehow internally?..
     system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
     print("\r");
-    return true;
-  } catch (...) {
-    return false;
   }
 
   auto //
