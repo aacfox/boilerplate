@@ -216,6 +216,22 @@ export {
   private:
   };
   using dynamic_bitset = bitvector;
+
+  template <class T>
+  class vantage_ptr : public not_null<T *> {
+  public:
+    using pointer = T *;
+    using element_type = T;
+    vantage_ptr(indirectly_readable auto &&ptr)
+        : not_null<pointer>{to_address(self_forward(ptr))} {}
+    vantage_ptr(auto &&arg) : not_null<pointer>{addressof(arg)} {}
+    operator pointer() const = delete; // YOU DON'T OWN THE POINTEE
+    pointer get() const = delete;      // YOU DON'T OWN THE POINTEE
+  };
+  template <indirectly_readable T> vantage_ptr(T &&t)
+      -> vantage_ptr<remove_reference_t<decltype(*t)>>;
+  template <class T> vantage_ptr(T &&) -> vantage_ptr<remove_reference_t<T>>;
+  auto make_vantage(auto &&arg) { return vantage_ptr{self_forward(arg)}; }
   } // namespace classes
   inline namespace functions {
   template <arithmetic T = size_t> [[nodiscard]] auto //
@@ -329,6 +345,15 @@ export {
   } // namespace functions
   } // namespace boil
 }
+
+namespace std {
+template <class T>
+struct hash<vantage_ptr<T>> {
+  size_t operator()(const vantage_ptr<T> &arg) const {
+    return std::hash<typename vantage_ptr<T>::pointer>{}(to_address(arg));
+  }
+};
+} // namespace std
 
 namespace boil { // bitvector imple________________________________________
 template <size_t N = 0> constexpr bitvector:: //
