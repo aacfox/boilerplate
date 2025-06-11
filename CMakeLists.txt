@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0.2)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
 set(CMAKE_CXX_MODULE_STD ON)
-project(boilerplate VERSION 6.14.12.10)
+project(boilerplate VERSION 8.13.13.13)
 # ~~~
 #                           |  |  |  |   These numbers should change only
 #                           |  |  |  |   completely independently from each other

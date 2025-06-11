@@ -33,29 +33,22 @@ export {
   template <class Pair>
   concept pair_like = tuple_size_v<remove_cvref_t<Pair>> == 2;
 
-  template <arithmetic T> constexpr auto max_v = numeric_limits<T>::max();
-  template <arithmetic T> constexpr auto min_v = numeric_limits<T>::min();
-
-  cauto now = &high_resolution_clock::now;
+  template <arithmetic T> constexpr auto //
+      max_v = numeric_limits<T>::max();
+  template <arithmetic T> constexpr auto //
+      min_v = numeric_limits<T>::min();
+  const auto //
+      now = &high_resolution_clock::now;
 
   using cache_line = bitset<hardware_constructive_interference_size>;
-  } // namespace sugars
-  inline namespace utilities { // tiny ones
-  enum class Order : signed char {
-    equal = 0,
-    equivalent = equal,
-    less = -1,
-    greater = 1,
-    unordered = -128,
-  };
 
-  [[nodiscard]] constexpr auto //
-  today() noexcept {
+  template <class = void> [[nodiscard]] constexpr auto //
+  today() noexcept -> year_month_day {
     return year_month_day{floor<days>(system_clock::now())};
   }
 
-  [[nodiscard]] constexpr auto //
-  o_clock() noexcept {
+  template <class = void> [[nodiscard]] constexpr auto //
+  o_clock() noexcept -> hh_mm_ss {
     return hh_mm_ss{floor<seconds>(system_clock::now()) -
                     floor<days>(system_clock::now())};
   }
@@ -67,6 +60,15 @@ export {
     return r::subrange{get<0>(self_forward(iter_pair)),
                        get<1>(self_forward(iter_pair))};
   }
+  } // namespace sugars
+  inline namespace utilities { // tiny ones
+  enum class Order : signed char {
+    equal = 0,
+    equivalent = equal,
+    less = -1,
+    greater = 1,
+    unordered = -128,
+  };
 
   void //
   print_type(auto &&var) {
@@ -75,8 +77,9 @@ export {
     print("\r");
   }
 
-  auto //
-  create_file(convertible_to<path> auto &&filename) -> directory_entry {
+  auto                                              //
+  create_file(convertible_to<path> auto &&filename) //
+      -> directory_entry {
     ofstream{filename};
     return {filename};
   }
@@ -91,12 +94,13 @@ export {
     return {filename};
   }
 
-  template <character CharT = char> auto //
-  all_contents(ifstream &input)          //
-      -> basic_stringstream<CharT> {
-    return {istreambuf_iterator<CharT>{input}, istreambuf_iterator<CharT>{}};
+  template <character Char = char> [[nodiscard]] auto //
+  all_contents(ifstream &input)                       //
+      -> basic_stringstream<Char> {
+    return {istreambuf_iterator<Char>{input}, istreambuf_iterator<Char>{}};
   }
 
+  template <class = void>
   class Exception : public exception { // clang-format off
     // TODO(aacfox): nested exceptions
   public:
@@ -127,7 +131,7 @@ export {
     source_location _where;
   }; // clang-format on
 
-  [[nodiscard]] constexpr auto                          //
+  template <class = void> [[nodiscard]] constexpr auto  //
   what(const exception_ptr &eptr = current_exception()) //
       noexcept -> string_view try {
     if (eptr) {
@@ -147,7 +151,7 @@ export {
     return "Unknown/No message.";
   }
 
-  [[nodiscard]] constexpr auto                           //
+  template <class = void> [[nodiscard]] constexpr auto   //
   where(const exception_ptr &eptr = current_exception()) //
       noexcept -> source_location try {
     if (eptr) {
@@ -162,13 +166,14 @@ export {
   }
 
 #ifdef __cpp_lib_stacktrace
-  [[nodiscard]] auto when(const exception_ptr &eptr = current_exception()) //
+  template <class = void> [[nodiscard]] auto            //
+  when(const exception_ptr &eptr = current_exception()) //
       noexcept -> stacktrace {}
 #endif
   } // namespace utilities
   inline namespace classes {
+  template <class = void>
   class bitvector : public vector<bool> {
-    // TODO(aacfox): will need integer_sequence or iota? if already constexpr...
   public:
     using vector<bool>::vector;
     template <size_t N = 0> constexpr explicit //
@@ -231,7 +236,11 @@ export {
   template <indirectly_readable T> vantage_ptr(T &&t)
       -> vantage_ptr<remove_reference_t<decltype(*t)>>;
   template <class T> vantage_ptr(T &&) -> vantage_ptr<remove_reference_t<T>>;
-  auto make_vantage(auto &&arg) { return vantage_ptr{self_forward(arg)}; }
+
+  [[nodiscard]] auto //
+  make_vantage(auto &&arg) {
+    return vantage_ptr{self_forward(arg)};
+  }
   } // namespace classes
   inline namespace functions {
   template <arithmetic T = size_t> [[nodiscard]] auto //
@@ -255,16 +264,19 @@ export {
   randomizer() {
     return randomizer<T>(min_v<T>, max_v<T>);
   }
-  [[nodiscard]] bool //
-  flip_coin() {
-    thread_local auto coin{randomizer<size_t>(0, 1)};
+  [[nodiscard]] auto //
+  flip_coin() -> bool {
+    thread_local independent_bits_engine<default_random_engine, 1, uint_fast8_t>
+        coin{};
+    coin.seed(random_device{}());
     return coin();
   }
 
   // NOLINTNEXTLINE: it's fucking template header
   template <size_t n = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] nanoseconds //
-  benchmark(Fx &&fx, Args &&...args) {
+  [[nodiscard]] auto                 //
+  benchmark(Fx &&fx, Args &&...args) //
+      -> nanoseconds {
     const auto epoch = now();
     for (size_t i{}; i != n; ++i) {
       invoke(self_forward(fx), self_forward(args)...);
@@ -272,8 +284,9 @@ export {
     return (now() - epoch) / n;
   }
   template <size_t precision = 1024, class... Args, invocable<Args...> Fx>
-  [[nodiscard]] nanoseconds //
-  benchmark_to_death(Fx &&fx, Args &&...args) {
+  [[nodiscard]] auto                          //
+  benchmark_to_death(Fx &&fx, Args &&...args) //
+      -> nanoseconds {
     nanoseconds new_average{}; // clang-format off
     for (auto [total, times, old_average, same_in_row] =
          tuple{  0ns,   0uz,         0ns,         0uz}; 
