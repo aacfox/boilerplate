@@ -68,13 +68,13 @@ export {
                        get<1>(self_forward(iter_pair))};
   }
 
-  void //
+  auto //
   print_type(auto &&var) {
     // TODO(aacfox): maybe return somehow internally?..
-    system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
+    auto _ = system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
     print("\r");
+    return _;
   }
-
   auto //
   create_file(convertible_to<path> auto &&filename) -> directory_entry {
     ofstream{filename};
