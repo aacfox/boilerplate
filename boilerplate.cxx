@@ -339,7 +339,7 @@ export {
     //   auto countingSort{[&](const size_t digit) mutable {
     //     buckets.fill(0);
     //     auto toSortCopy{to_sort};
-    //     for (const auto &[index, digits] : toSortCopy)
+    //     for (auto const&[index, digits] : toSortCopy)
     //       ++buckets.at(digits.at(digit));
     //     inclusive_scan(begin(buckets), end(buckets),
     //                         begin(buckets));
