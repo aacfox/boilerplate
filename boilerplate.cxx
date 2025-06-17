@@ -70,11 +70,12 @@ export {
     unordered = -128,
   };
 
-  void //
+  auto //
   print_type(auto &&var) {
     // TODO(aacfox): maybe return somehow internally?..
-    system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
+    auto _ = system(("c++filt -t "s + typeid(self_forward(var)).name()).data());
     print("\r");
+    return _;
   }
 
   auto                                              //
