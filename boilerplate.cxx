@@ -42,13 +42,13 @@ export {
 
   using cache_line = bitset<hardware_constructive_interference_size>;
 
-  template <class = void> [[nodiscard]] constexpr auto //
-  today() noexcept -> year_month_day {
+  [[nodiscard]] auto //
+  today() noexcept {
     return year_month_day{floor<days>(system_clock::now())};
   }
 
-  template <class = void> [[nodiscard]] constexpr auto //
-  o_clock() noexcept -> hh_mm_ss {
+  [[nodiscard]] auto //
+  o_clock() noexcept {
     return hh_mm_ss{floor<seconds>(system_clock::now()) -
                     floor<days>(system_clock::now())};
   }
@@ -101,7 +101,6 @@ export {
     return {istreambuf_iterator<Char>{input}, istreambuf_iterator<Char>{}};
   }
 
-  template <class = void>
   class Exception : public exception { // clang-format off
     // TODO(aacfox): nested exceptions
   public:
@@ -221,7 +220,7 @@ export {
 
   private:
   };
-  using dynamic_bitset = bitvector;
+  using dynamic_bitset = bitvector<void>;
 
   template <class T>
   class vantage_ptr : public not_null<T *> {
@@ -362,128 +361,130 @@ export {
 
 namespace std {
 template <class T>
-struct hash<vantage_ptr<T>> {
-  size_t operator()(const vantage_ptr<T> &arg) const {
-    return std::hash<typename vantage_ptr<T>::pointer>{}(to_address(arg));
+struct hash<boil::vantage_ptr<T>> {
+  size_t operator()(const boil::vantage_ptr<T> &arg) const {
+    return std::hash<typename boil::vantage_ptr<T>::pointer>{}(to_address(arg));
   }
 };
 } // namespace std
 
 namespace boil { // bitvector imple________________________________________
-template <size_t N = 0> constexpr bitvector:: //
+template <> template <size_t N> constexpr bitvector<>:: //
     bitvector(const bitset<N> &rhs) {
   this->reserve(rhs.size());
   generate_n(back_inserter(*this), rhs.size(),
              [&rhs, i{-1z}] mutable { return rhs[++i]; });
 }
 
-template <size_t N = 0> constexpr bitvector:: //
-operator bitset<N>(this const bitvector &self) {
+template <> template <size_t N> constexpr bitvector<>:: //
+operator bitset<N>(this const bitvector & self) {
   Expects((N >= self.size()));
   return bitset<N>{self | v::transform([](auto _) { return '0' + _; }) |
                    v::reverse | r::to<string>()};
 }
 
-constexpr bool bitvector:: //
+template <> constexpr bool bitvector<>:: //
     test(this const bitvector &self, const index bit) {
   Expects((bit < self.size()));
   return self[bit];
 }
 
-constexpr bool bitvector:: //
+template <> constexpr bool bitvector<>:: //
     all(this const bitvector &self) {
   return r::all_of(self, identity{});
 }
 
-constexpr bool bitvector:: //
+template <> constexpr bool bitvector<>:: //
     any(this const bitvector &self) {
   return r::any_of(self, identity{});
 }
 
-constexpr bool bitvector:: //
+template <> constexpr bool bitvector<>:: //
     none(this const bitvector &self) {
   return r::none_of(self, identity{});
 }
 
-constexpr size_t bitvector:: //
+template <> constexpr size_t bitvector<>:: //
     count(this const bitvector &self) {
   return r::count(self, true);
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
 operator&=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs && rhs; });
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
 operator|=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs || rhs; });
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
 operator^=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs != rhs; });
   return self;
 }
-bitvector &bitvector:: //
+
+template <> bitvector<> &bitvector<>:: //
 operator<<=(this bitvector &self, const size_t shift) {
   shift_left(self.begin(), self.end(), shift);
   r::fill_n(self.rbegin(), shift, false);
   return self;
 }
 
-constexpr bitvector bitvector:: //
+template <> constexpr bitvector<> bitvector<>:: //
 operator<<(this bitvector self, const size_t shift) {
   return self <<= shift;
 }
-bitvector &bitvector:: //
+
+template <> bitvector<> &bitvector<>:: //
 operator>>=(this bitvector &self, const size_t shift) {
   shift_right(self.begin(), self.end(), shift);
   r::fill_n(self.begin(), shift, false);
   return self;
 }
 
-constexpr bitvector bitvector:: //
+template <> constexpr bitvector<> bitvector<>:: //
 operator>>(this bitvector self, const size_t shift) {
   return self >>= shift;
 }
 
-constexpr bitvector bitvector:: //
+template <> constexpr bitvector<> bitvector<>:: //
 operator~(this bitvector self) {
   self.flip();
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
     set(this bitvector &self) {
   r::fill(self, true);
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
     set(this bitvector &self, const index bit, bool value) {
   self[bit] = value;
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
     reset(this bitvector &self) {
   self.clear();
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
     reset(this bitvector &self, const index bit) {
   self[bit] = false;
   return self;
 }
 
-bitvector &bitvector:: //
+template <> bitvector<> &bitvector<>:: //
     flip(this bitvector &self, const index bit) {
   self[bit].flip();
   return self;
