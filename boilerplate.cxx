@@ -369,122 +369,122 @@ struct hash<boil::vantage_ptr<T>> {
 } // namespace std
 
 namespace boil { // bitvector imple________________________________________
-template <> template <size_t N> constexpr bitvector<>:: //
+template <class Void> template <size_t N> constexpr bitvector<Void>:: //
     bitvector(const bitset<N> &rhs) {
   this->reserve(rhs.size());
   generate_n(back_inserter(*this), rhs.size(),
              [&rhs, i{-1z}] mutable { return rhs[++i]; });
 }
 
-template <> template <size_t N> constexpr bitvector<>:: //
+template <class Void> template <size_t N> constexpr bitvector<Void>:: //
 operator bitset<N>(this const bitvector & self) {
   Expects((N >= self.size()));
   return bitset<N>{self | v::transform([](auto _) { return '0' + _; }) |
                    v::reverse | r::to<string>()};
 }
 
-template <> constexpr bool bitvector<>:: //
+template <class Void> constexpr bool bitvector<Void>:: //
     test(this const bitvector &self, const index bit) {
   Expects((bit < self.size()));
   return self[bit];
 }
 
-template <> constexpr bool bitvector<>:: //
+template <class Void> constexpr bool bitvector<Void>:: //
     all(this const bitvector &self) {
   return r::all_of(self, identity{});
 }
 
-template <> constexpr bool bitvector<>:: //
+template <class Void> constexpr bool bitvector<Void>:: //
     any(this const bitvector &self) {
   return r::any_of(self, identity{});
 }
 
-template <> constexpr bool bitvector<>:: //
+template <class Void> constexpr bool bitvector<Void>:: //
     none(this const bitvector &self) {
   return r::none_of(self, identity{});
 }
 
-template <> constexpr size_t bitvector<>:: //
+template <class Void> constexpr size_t bitvector<Void>:: //
     count(this const bitvector &self) {
   return r::count(self, true);
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
 operator&=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs && rhs; });
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
 operator|=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs || rhs; });
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
 operator^=(this bitvector &self, const bitvector &other) {
   r::transform(self, other, self.begin(),
                [](auto &&lhs, auto &&rhs) { return lhs != rhs; });
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
 operator<<=(this bitvector &self, const size_t shift) {
   shift_left(self.begin(), self.end(), shift);
   r::fill_n(self.rbegin(), shift, false);
   return self;
 }
 
-template <> constexpr bitvector<> bitvector<>:: //
+template <class Void> constexpr bitvector<Void> bitvector<Void>:: //
 operator<<(this bitvector self, const size_t shift) {
   return self <<= shift;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
 operator>>=(this bitvector &self, const size_t shift) {
   shift_right(self.begin(), self.end(), shift);
   r::fill_n(self.begin(), shift, false);
   return self;
 }
 
-template <> constexpr bitvector<> bitvector<>:: //
+template <class Void> constexpr bitvector<Void> bitvector<Void>:: //
 operator>>(this bitvector self, const size_t shift) {
   return self >>= shift;
 }
 
-template <> constexpr bitvector<> bitvector<>:: //
+template <class Void> constexpr bitvector<Void> bitvector<Void>:: //
 operator~(this bitvector self) {
   self.flip();
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
     set(this bitvector &self) {
   r::fill(self, true);
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
     set(this bitvector &self, const index bit, bool value) {
   self[bit] = value;
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
     reset(this bitvector &self) {
   self.clear();
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
     reset(this bitvector &self, const index bit) {
   self[bit] = false;
   return self;
 }
 
-template <> bitvector<> &bitvector<>:: //
+template <class Void> bitvector<Void> &bitvector<Void>:: //
     flip(this bitvector &self, const index bit) {
   self[bit].flip();
   return self;
