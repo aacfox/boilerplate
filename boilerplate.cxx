@@ -358,7 +358,6 @@ export {
   } // namespace functions
   } // namespace boil
 }
-
 namespace std {
 template <class T>
 struct hash<boil::vantage_ptr<T>> {
@@ -367,7 +366,6 @@ struct hash<boil::vantage_ptr<T>> {
   }
 };
 } // namespace std
-
 namespace boil { // bitvector imple________________________________________
 template <class Void> template <size_t N> constexpr bitvector<Void>:: //
     bitvector(const bitset<N> &rhs) {
