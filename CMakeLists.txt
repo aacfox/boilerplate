@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0.3)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 set(CMAKE_CXX_MODULE_STD ON)
-project(boilerplate VERSION 10.13.13.15)
+project(boilerplate VERSION 11.13.13.15)
 # ~~~
 #                           |  |  |  |   These numbers should change only
 #                           |  |  |  |   completely independently from each other
@@ -14,7 +14,7 @@ include(FetchContent)
 FetchContent_Declare(
   GSL
   GIT_REPOSITORY "https://github.com/microsoft/GSL"
-  GIT_TAG "origin/main"
+  GIT_TAG "main"
   GIT_SHALLOW ON)
 FetchContent_MakeAvailable(GSL)
 
